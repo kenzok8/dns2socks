@@ -1382,9 +1382,9 @@ static int CreateHttpProxyConnectCommand()
 	if(g_sDnsSrvAddr.ss_family==AF_UNSPEC)
 	{
 		//sin6_addr contains pointer to name, see ParseIpAndPort (max. length is 255)
-		int iLenDnsAddr=sprintf(g_caHttpProxyConnect+g_iHttpProxyConnectLen, "%s:%u", *(char**)&((struct sockaddr_in6*)&g_sDnsSrvAddr)->sin6_addr, ntohs(((struct sockaddr_in6*)&g_sDnsSrvAddr)->sin6_port));
+		int iLenDnsAddr=snprintf(g_caHttpProxyConnect+g_iHttpProxyConnectLen, sizeof(g_caHttpProxyConnect)-g_iHttpProxyConnectLen, "%s:%u", *(char**)&((struct sockaddr_in6*)&g_sDnsSrvAddr)->sin6_addr, ntohs(((struct sockaddr_in6*)&g_sDnsSrvAddr)->sin6_port));
 
-		if(iLenDnsAddr<=0)
+		if(iLenDnsAddr<=0||iLenDnsAddr>=(int)(sizeof(g_caHttpProxyConnect)-g_iHttpProxyConnectLen))
 			return 0;	//error
 		g_iHttpProxyConnectLen+=iLenDnsAddr;
 	}
@@ -1680,11 +1680,19 @@ int main(int iArgCount, char** szaArgs)
 			strcpy((char*)u16aBuf+1536, "unknown address");
 		}
 		else
+		{
 			//add amount of bits
-			sprintf((char*)u16aBuf+1536+strlen((char*)u16aBuf+1536), "/%u", (unsigned int)g_u8aEcsOption[6]);
+			size_t iLenEcs=strlen((char*)u16aBuf+1536);
+			if(iLenEcs<256)
+				snprintf((char*)u16aBuf+1536+iLenEcs, 256-iLenEcs, "/%u", (unsigned int)g_u8aEcsOption[6]);
+		}
 		//add " forced" if g_bForceEcs
 		if(g_bForceEcs)
-			strcat((char*)u16aBuf+1536, " forced");
+		{
+			size_t iLenEcs=strlen((char*)u16aBuf+1536);
+			if(iLenEcs<255)
+				strncat((char*)u16aBuf+1536, " forced", 255-iLenEcs);
+		}
 	}
 	else
 		strcpy((char*)u16aBuf+1536, "disabled");

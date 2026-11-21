@@ -19,5 +19,5 @@ Planned first cleanup scope:
 
 Versioning policy:
 
-- upstream base tag: `v2.1`
-- maintained follow-up tag: `v2.1-kenzok8.1`, `v2.1-kenzok8.2`, ...
+- upstream base: DNS2SOCKS 2.1
+- maintained releases use plain version tags: `v2.2`, `v2.3`, ...
